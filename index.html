@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Món Quà 20/10 Dành Cho Bạn ✨</title>
+  <!-- Thư viện hiệu ứng pháo hoa -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #ffd1dc 0%, #ffc0cb 50%, #ffe4e1 100%);
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 16px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 28px 20px;
+      border-radius: 24px;
+      box-shadow: 0 15px 35px rgba(214, 51, 132, 0.15);
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid rgba(255, 182, 193, 0.5);
+    }
+
+    /* Hiệu ứng rung rinh cho hộp quà */
+    .gift-box {
+      font-size: 80px;
+      cursor: pointer;
+      display: inline-block;
+      transition: transform 0.2s;
+      animation: wobble 2.5s infinite ease-in-out;
+      user-select: none;
+    }
+    @keyframes wobble {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      20% { transform: scale(1.08) rotate(-6deg); }
+      40% { transform: scale(1.08) rotate(6deg); }
+      60% { transform: scale(1.04) rotate(-3deg); }
+      80% { transform: scale(1.04) rotate(3deg); }
+    }
+
+    h1 {
+      color: #d63384;
+      font-size: 1.35rem;
+      margin: 14px 0 8px;
+    }
+
+    p.subtitle {
+      color: #777;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    /* Nội dung hiển thị sau khi mở quà */
+    #revealed-content {
+      display: none;
+      animation: fadeIn 0.6s ease-out;
+      margin-top: 16px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fortune-card {
+      background: #fff5f8;
+      border: 1.5px dashed #f472b6;
+      border-radius: 16px;
+      padding: 18px 14px;
+      margin: 16px 0;
+      min-height: 85px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fortune-text {
+      color: #9d174d;
+      font-size: 0.98rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      color: #fff;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 25px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.95); }
+
+    /* Nút điều khiển âm thanh góc trên */
+    .music-btn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nút bật/tắt nhạc -->
+  <button class="music-btn" id="musicToggle" onclick="toggleMusic()">🔇</button>
+
+  <!-- Âm thanh nền nhẹ nhàng (nhạc bản quyền tự do) -->
+  <audio id="bgm" loop preload="auto">
+    <source src="https://assets.mixkit.co/music/preview/mixkit-positive-notification-951.mp3" type="audio/mpeg" />
+  </audio>
+
+  <div class="container">
+    <div class="gift-box" id="giftIcon" onclick="openGift()">🎁</div>
+    <h1 id="title">Chạm vào hộp quà nhé!</h1>
+    <p class="subtitle" id="hint">Món quà nhỏ từ team IT gửi tặng bạn ✨</p>
+
+    <div id="revealed-content">
+      <div class="fortune-card">
+        <p class="fortune-text" id="fortuneMsg">Đang mở quẻ may mắn...</p>
+      </div>
+      <button class="btn" onclick="drawFortune()">✨ Rút quẻ may mắn khác</button>
+    </div>
+  </div>
+
+  <script>
+    const fortunes = [
+      "🌸 Chúc bạn ngày 20/10 luôn rạng ngời, vui vẻ và nhận được thật nhiều hoa!",
+      "💻 Lời chúc chuẩn IT: Đồ án luôn đạt điểm A, chạy bài nào build pass bài đó!",
+      "🍵 Bạn rút được: Phiếu yêu cầu 1 bạn nam trong lớp mua giúp 1 ly trà sữa!",
+      "✨ Error 404: Không tìm thấy bất kỳ nỗi buồn nào trong ngày hôm nay của bạn.",
+      "🍀 Chúc bạn luôn xinh đẹp, tự tin và tỏa sáng theo cách riêng của mình.",
+      "🌷 Chúc deadline tự lùi, bug tự fix, tiền tiêu không hết, deadline không lo!",
+      "🍰 Bạn rút được: 1 ngày hoàn toàn thảnh thơi, được quyền từ chối mọi sự hối thúc."
+    ];
+
+    let hasOpened = false;
+    const bgm = document.getElementById('bgm');
+    const musicBtn = document.getElementById('musicToggle');
+
+    function triggerConfetti() {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function openGift() {
+      if (hasOpened) return;
+      hasOpened = true;
+
+      // Đổi icon và tiêu đề
+      const icon = document.getElementById('giftIcon');
+      icon.textContent = '💐';
+      icon.style.animation = 'none';
+
+      document.getElementById('title').textContent = 'Happy 20/10! 🎉';
+      document.getElementById('hint').textContent = 'Chúc bạn một ngày thật ngọt ngào & nhiều niềm vui!';
+      document.getElementById('revealed-content').style.display = 'block';
+
+      // Nổ pháo hoa
+      triggerConfetti();
+
+      // Rút quẻ đầu tiên
+      drawFortune();
+
+      // Thử phát nhạc nền
+      bgm.play().then(() => {
+        musicBtn.textContent = '🎵';
+      }).catch(() => {
+        // Trình duyệt chặn autoplay thì người dùng tự bấm nút âm thanh
+        musicBtn.textContent = '🔇';
+      });
+    }
+
+    function drawFortune() {
+      const msgElement = document.getElementById('fortuneMsg');
+      const randomIndex = Math.floor(Math.random() * fortunes.length);
+      msgElement.textContent = fortunes[randomIndex];
+      
+      // Bắn ít pháo hoa mini mỗi lần đổi quẻ
+      confetti({
+        particleCount: 25,
+        spread: 50,
+        origin: { y: 0.7 }
+      });
+    }
+
+    function toggleMusic() {
+      if (bgm.paused) {
+        bgm.play();
+        musicBtn.textContent = '🎵';
+      } else {
+        bgm.pause();
+        musicBtn.textContent = '🔇';
+      }
+    }
+  </script>
+</body>
+</html>
